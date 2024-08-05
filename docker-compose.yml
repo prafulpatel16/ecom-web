@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./ecommerce-frontend
+    ports:
+      - '3000:80'
+    depends_on:
+      - backend
+
+  backend:
+    build: ./ecommerce-backend
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./ecommerce-backend/.env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: ecomm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_PORT: 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+
+volumes:
+  pgdata:
