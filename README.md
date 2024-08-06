@@ -49,7 +49,7 @@ This is a React.js web application that fetches and displays a list of products 
    Create a `.env` file in the root of the `ecommerce-frontend` directory if it does not exist. Add the following variables (replace `<backend-url>` with your backend API URL):
 
    ```env
-   REACT_APP_BACKEND_URL=http://<backend-url>:5000
+   REACT_APP_BACKEND_SERVICE=http://<backend-url>:5000
    ```
 
 4. **Start the Development Server**

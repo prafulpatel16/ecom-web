@@ -46,4 +46,3 @@ ehthumbs.db
 !.yarn/versions
 
 # dotenv environment variables file
-.env

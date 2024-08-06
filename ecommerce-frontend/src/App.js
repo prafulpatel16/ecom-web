@@ -2,25 +2,28 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-
-
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true); // Track loading state
   const [error, setError] = useState(null); // Track error state
 
   useEffect(() => {
-    // Fetch products from backend API
-    axios.get(`${process.env.REACT_APP_BACKEND_URL}/products`)
-      .then(response => {
+    const fetchProducts = async () => {
+      try {
+        const backendUrl = `${process.env.REACT_APP_BACKEND_SERVICE}/products`;
+        console.log('Fetching products from:', backendUrl);
+        const response = await axios.get(backendUrl);
+        console.log('Products response:', response);
         setProducts(response.data);
         setLoading(false); // Set loading to false after successful fetch
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching products:', error);
-        setError('Error fetching products. Please try again later.');
+        setError(`Error fetching products: ${error.message}. Please try again later.`);
         setLoading(false); // Set loading to false even if there's an error
-      });
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   if (loading) {
