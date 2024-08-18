@@ -22,7 +22,12 @@ function App() {
         setLoading(false);
       } catch (error) {
         console.error('Error fetching products:', error);
-        setError(`Error fetching products: ${error.message}. Please try again later.`);
+
+        // Handle error more gracefully with fallback values
+        const statusCode = error.response?.status || 'Network Error';
+        const statusMessage = error.message || 'An unknown error occurred';
+
+        setError(`Error fetching products: ${statusCode} - ${statusMessage}. Please try again later.`);
         setLoading(false);
       }
     };

@@ -24,6 +24,7 @@ services:
       - app-network
 
   db:
+    build: ./database
     image: postgres:13
     environment:
       POSTGRES_DB: ecomm

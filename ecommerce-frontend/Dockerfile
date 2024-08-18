@@ -7,6 +7,10 @@ WORKDIR /app
 # Copy the package.json and package-lock.json files
 COPY package.json package-lock.json ./
 
+# Use ARG to pass the environment variable during build time
+ARG REACT_APP_BACKEND_SERVICE
+ENV REACT_APP_BACKEND_SERVICE=$REACT_APP_BACKEND_SERVICE
+
 # Install dependencies
 RUN npm install
 

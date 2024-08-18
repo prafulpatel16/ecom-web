@@ -1,3 +1,5 @@
+-- This file is creating a database inside docker container when attached with the volume in docker-compose file
+-- docker-compose.yml -- ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
 -- Check if the database exists, and create it if it does not
 DO $$
 BEGIN

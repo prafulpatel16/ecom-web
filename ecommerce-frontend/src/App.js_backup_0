@@ -10,11 +10,8 @@ function App() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const backendUrl = `${process.env.REACT_APP_BACKEND_SERVICE}/api/products?timestamp=${Date.now()}`;
+        const backendUrl = process.env.REACT_APP_BACKEND_SERVICE;
         console.log('Backend URL:', backendUrl);
-
-        // Optional: Clear cache (Not recommended for production)
-        // axios.defaults.headers.common['Cache-Control'] = 'no-cache, no-store, must-revalidate';
 
         const response = await axios.get(backendUrl);
         console.log('Products response:', response);
