@@ -1,3 +1,5 @@
+//Working solution with AWS ECS
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
@@ -13,36 +15,12 @@ function App() {
         const backendUrl = `${process.env.REACT_APP_BACKEND_SERVICE}/api/products?timestamp=${Date.now()}`;
         console.log('Backend URL:', backendUrl);
 
+        // Optional: Clear cache (Not recommended for production)
+        // axios.defaults.headers.common['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+
         const response = await axios.get(backendUrl);
         console.log('Products response:', response);
-
-        // Check if the response is JSON
-        const contentType = response.headers['content-type'];
-        if (contentType && contentType.includes('application/json')) {
-          let productsData = response.data;
-
-          // Ensure data is an array
-          if (typeof productsData === 'string') {
-            try {
-              productsData = JSON.parse(productsData);
-              if (Array.isArray(productsData)) {
-                setProducts(productsData);
-              } else {
-                throw new Error('Invalid data format: Parsed data is not an array');
-              }
-            } catch (parseError) {
-              console.error('Error parsing data:', parseError);
-              setError(`Error parsing data: ${parseError.message}. Please try again later.`);
-            }
-          } else if (Array.isArray(productsData)) {
-            setProducts(productsData);
-          } else {
-            throw new Error('Invalid data format: Response is not an array');
-          }
-        } else {
-          throw new Error('Unexpected content type: Response is not JSON');
-        }
-
+        setProducts(response.data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching products:', error);

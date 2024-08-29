@@ -1,3 +1,4 @@
+# niginx.conf file to run with local docker compose
 server {
     listen 80;
 

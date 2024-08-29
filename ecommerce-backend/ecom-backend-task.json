@@ -1,7 +1,5 @@
 {
     "family": "ecom-web-backend",
-    "taskRoleArn": "arn:aws:iam::739313151559:role/ecsTaskExecutionRole",
-    "executionRoleArn": "arn:aws:iam::739313151559:role/ecsTaskExecutionRole",
     "containerDefinitions": [
         {
             "name": "backend",
@@ -22,7 +20,7 @@
                 },
                 {
                     "name": "POSTGRES_PASSWORD",
-                    "value": "postgrestest"
+                    "value": "postgrestest123"
                 },
                 {
                     "name": "POSTGRES_PORT",
@@ -36,6 +34,7 @@
                     "name": "POSTGRES_HOST",
                     "value": "ecom-db.craikm8oia4j.us-west-1.rds.amazonaws.com"
                 }
+
             ],
             "mountPoints": [],
             "volumesFrom": [],
@@ -49,31 +48,10 @@
                 }
             },
             "systemControls": []
-        },
-        {
-            "name": "xray-daemon",
-            "image": "amazon/aws-xray-daemon",
-            "cpu": 32,
-            "memoryReservation": 256,
-            "essential": false,
-            "portMappings": [
-                {
-                    "containerPort": 2000,
-                    "hostPort": 2000,
-                    "protocol": "udp"
-                }
-            ],
-            "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "ecs-xray-loggroup",
-                    "awslogs-create-group": "true",
-                    "awslogs-region": "us-west-1",
-                    "awslogs-stream-prefix": "xray"
-                }
-            }
         }
     ],
+    "taskRoleArn": "arn:aws:iam::739313151559:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::739313151559:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
     "requiresCompatibilities": [
         "FARGATE"

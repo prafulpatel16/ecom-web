@@ -6,7 +6,9 @@ services:
     ports:
       - '3000:80'
     env_file:
-      - ./ecommerce-frontend/.env  
+      - ./ecommerce-frontend/.env
+  #  environment:
+  #    REACT_APP_BACKEND_SERVICE: http://backend:5000  
     depends_on:
       - backend
     networks:

@@ -5,14 +5,13 @@ require('dotenv').config();
 
 const app = express();
 
-// Configure PostgreSQL connection with SSL
+// Configure PostgreSQL connection
 const pool = new Pool({
   user: process.env.POSTGRES_USER,
   host: process.env.POSTGRES_HOST,
   database: process.env.POSTGRES_DB,
   password: process.env.POSTGRES_PASSWORD,
   port: process.env.POSTGRES_PORT,
-  
 });
 
 // Enable CORS for all origins
@@ -34,7 +33,7 @@ app.get('/api', (req, res) => {
 app.get('/api/products', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM products');  
-    res.json(result.rows);
+    res.json(result.rows); // Send JSON response
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
