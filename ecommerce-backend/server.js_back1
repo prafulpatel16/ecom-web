@@ -2,8 +2,8 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 require('dotenv').config();
-const { connectRabbitMQ, sendToQueue, consumeFromQueue } = require('./rabbitmq.js');
-
+const { connectRabbitMQ, sendToQueue, consumeFromQueue } = require('./rabbitmq.js_latestback1');
+app.use(express.json());
 const app = express();
 
 // Configure PostgreSQL connection
@@ -43,28 +43,31 @@ app.get('/api/products', async (req, res) => {
 
 // Connect to RabbitMQ and start consuming messages
 connectRabbitMQ().then(() => {
-  consumeFromQueue('product_queue', (message) => {
+  consumeFromQueue((message) => {
     // Handle the message
     console.log('Message processed:', message);
-    // You can add additional logic here to handle the message
   });
 });
 
-app.post('/api/product_queue', async (req, res) => {
-    const { product } = req.body;
-    if (product) {
-      try {
-        await sendToQueue('product_queue', JSON.stringify(product));
-        res.status(200).json({ message: 'Message sent to queue' });
-      } catch (err) {
+// Example endpoint to send a message to the queue
+app.post('/api/product_queue', (req, res) => {
+  const { product } = req.body;
+  if (product) {
+    sendToQueue('product_queue', JSON.stringify(product))
+      .then(() => {
+        res.status(200).send('Message sent to queue');
+      })
+      .catch((err) => {
         console.error('Failed to send message to queue:', err);
-        res.status(500).json({ message: 'Failed to send message' });
-      }
-    } else {
-      res.status(400).json({ message: 'Product data is required' });
-    }
-  });
+        res.status(500).send('Failed to send message');
+      });
+  } else {
+    res.status(400).send('Product data is required');
+  }
+});
+
 const port = process.env.PORT || 5000;
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

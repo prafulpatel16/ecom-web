@@ -16,8 +16,17 @@
             "environment": [
                 {
                     "name": "REACT_APP_BACKEND_SERVICE",
-                    "value": "http://ecom-service.ecom.local:5000"
+                    "value": "http://ecom-service.ecom.local"
+                },
+                {
+                    "name": "SERVER_NAME",
+                    "value": "ecom-alb-1415413729.us-west-1.elb.amazonaws.com"
+                },
+                {
+                    "name": "RESOLVER_IP",
+                    "value": "10.0.0.2"
                 }
+
             ],
             "mountPoints": [],
             "volumesFrom": [],
@@ -33,6 +42,7 @@
             "systemControls": []
         }
     ],
+    "taskRoleArn": "arn:aws:iam::739313151559:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::739313151559:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
     "requiresCompatibilities": [

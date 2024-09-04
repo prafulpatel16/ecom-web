@@ -1,19 +1,18 @@
-# nginx conf file to run with local docker compose deployment
+# nginx conf file to run with cloud ecs deployment
 server {
     listen 80;
-   # server_name ecom-alb-1415413729.us-west-1.elb.amazonaws.com; # Catch-all server name
-    server_name localhost; # Catch-all server nameserver_name ecom-alb-1415413729.us-west-1.elb.amazonaws.com; # Catch-all server name
+    server_name ecom-alb-1415413729.us-west-1.elb.amazonaws.com; # Catch-all server name
 
     # Define the DNS resolver for service discovery
-    #resolver 10.0.0.2 valid=300s; # Use your VPC DNS resolver IP (10.0.0.2 is typical for AWS VPCs)
+    resolver 10.0.0.2 valid=300s; # Use your VPC DNS resolver IP (10.0.0.2 is typical for AWS VPCs)
 
     # Backend layer
     # Route requests to the backend service using Cloud Map service discovery
     location /api/products {
     #    set $backend_url http://ecom-service.ecom.local:5000; # Your backend service URL
-      #   set $backend_url http://$REACT_APP_BACKEND_SERVICE:5000;
+             $backend_url http://$REACT_APP_BACKEND_SERVICE:5000;
              
-        proxy_pass http://backend:5000;
+        proxy_pass $backend_url;
 
         # Set timeout values
         proxy_connect_timeout 120s; # Default is 60 seconds

@@ -30,10 +30,10 @@ app.get('/api', (req, res) => {
   res.send('Welcome to the backend server. Please use the /products endpoint to retrieve data.');
 });
 
-// Get products endpoint
 app.get('/api/products', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM products');  
+    const result = await pool.query('SELECT * FROM products');
+    res.setHeader('Content-Type', 'application/json'); // Set content type
     res.json(result.rows);
   } catch (err) {
     console.error(err);
