@@ -45,36 +45,30 @@ app.get('/api', (req, res) => {
 
 // Get products endpoint with Redis caching
 app.get('/api/products', async (req, res) => {
-    try {
-      redisClient.get('products', async (err, cachedProducts) => {
-        if (err) throw err;
-  
-        if (cachedProducts) {
-          console.log('Cache hit');
-          res.json({
-            products: JSON.parse(cachedProducts),
-            cacheStatus: 'hit'
-          });
-        } else {
-          console.log('Cache miss');
-          const result = await pool.query('SELECT * FROM products');
-          const products = result.rows;
-  
-          // Store result in Redis cache with expiration time of 60 seconds
-          redisClient.setex('products', 60, JSON.stringify(products));
-  
-          res.json({
-            products: products,
-            cacheStatus: 'miss'
-          });
-        }
-      });
-    } catch (err) {
-      console.error('Failed to fetch products:', err);
-      res.status(500).send('Server error');
-    }
-  });
-  
+  try {
+    redisClient.get('products', async (err, cachedProducts) => {
+      if (err) throw err;
+
+      if (cachedProducts) {
+        console.log('Cache hit');
+        res.json(JSON.parse(cachedProducts));
+      } else {
+        console.log('Cache miss');
+        const result = await pool.query('SELECT * FROM products');
+        const products = result.rows;
+
+        // Store result in Redis cache with expiration time of 60 seconds
+        redisClient.setex('products', 60, JSON.stringify(products));
+
+        res.json(products);
+      }
+    });
+  } catch (err) {
+    console.error('Failed to fetch products:', err);
+    res.status(500).send('Server error');
+  }
+});
+
 // Add product and invalidate Redis cache, send to RabbitMQ
 app.post('/api/products', async (req, res) => {
   const { name, price } = req.body;

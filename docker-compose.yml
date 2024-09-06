@@ -39,7 +39,7 @@ services:
       - app-network
 
   rabbitmq:
-    container_name: rabbitmq
+    container_name: rabbitmq3
     image: rabbitmq:3-management
     ports:
       - '5672:5672'   # RabbitMQ default port
@@ -47,6 +47,13 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-network
+  redis:
+    container_name: redis
+    image: 'redis:alpine'
+    ports:
+      - '6379:6379'
     networks:
       - app-network
 

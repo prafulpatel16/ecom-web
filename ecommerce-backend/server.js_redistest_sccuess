@@ -1,4 +1,4 @@
-// Import necessary packages
+//REDIS TEST SCCUSSFUL
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
@@ -6,7 +6,6 @@ const redis = require('redis');
 require('dotenv').config();
 const { connectRabbitMQ, sendToQueue, consumeFromQueue, getMessagesFromQueue } = require('./rabbitmq.js');
 
-// Initialize the Express application
 const app = express();
 
 // Configure PostgreSQL connection
@@ -43,39 +42,33 @@ app.get('/api', (req, res) => {
   res.send('Welcome to the backend server. Please use the /products endpoint to retrieve data.');
 });
 
-// Get products endpoint with Redis caching
+// Get products endpoint with caching
 app.get('/api/products', async (req, res) => {
-    try {
-      redisClient.get('products', async (err, cachedProducts) => {
-        if (err) throw err;
-  
-        if (cachedProducts) {
-          console.log('Cache hit');
-          res.json({
-            products: JSON.parse(cachedProducts),
-            cacheStatus: 'hit'
-          });
-        } else {
-          console.log('Cache miss');
-          const result = await pool.query('SELECT * FROM products');
-          const products = result.rows;
-  
-          // Store result in Redis cache with expiration time of 60 seconds
-          redisClient.setex('products', 60, JSON.stringify(products));
-  
-          res.json({
-            products: products,
-            cacheStatus: 'miss'
-          });
-        }
-      });
-    } catch (err) {
-      console.error('Failed to fetch products:', err);
-      res.status(500).send('Server error');
-    }
-  });
-  
-// Add product and invalidate Redis cache, send to RabbitMQ
+  try {
+    redisClient.get('products', async (err, cachedProducts) => {
+      if (err) throw err;
+
+      if (cachedProducts) {
+        console.log('Cache hit');
+        res.json(JSON.parse(cachedProducts));
+      } else {
+        console.log('Cache miss');
+        const result = await pool.query('SELECT * FROM products');
+        const products = result.rows;
+
+        // Store result in Redis cache with an expiration time of 60 seconds
+        redisClient.setex('products', 60, JSON.stringify(products));
+
+        res.json(products);
+      }
+    });
+  } catch (err) {
+    console.error('Failed to fetch products:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+// Add product and invalidate cache
 app.post('/api/products', async (req, res) => {
   const { name, price } = req.body;
 
@@ -89,11 +82,8 @@ app.post('/api/products', async (req, res) => {
       [name, price]
     );
 
-    // Invalidate Redis cache
+    // Invalidate cache
     redisClient.del('products');
-
-    // Send the new product to RabbitMQ queue
-    await sendToQueue('product_queue', JSON.stringify({ action: 'add', product: result.rows[0] }));
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -102,7 +92,7 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-// Update product and invalidate Redis cache, send to RabbitMQ
+// Update product and invalidate cache
 app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
   const { name, price } = req.body;
@@ -117,44 +107,35 @@ app.put('/api/products/:id', async (req, res) => {
       [name, price, id]
     );
 
-    if (result.rowCount === 0) {
+    // Invalidate cache
+    redisClient.del('products');
+
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Invalidate Redis cache
-    redisClient.del('products');
-
-    // Send the updated product to RabbitMQ queue
-    await sendToQueue('product_queue', JSON.stringify({ action: 'update', product: result.rows[0] }));
-
-    res.status(200).json(result.rows[0]);
+    res.json(result.rows[0]);
   } catch (err) {
     console.error('Failed to update product:', err);
     res.status(500).json({ message: 'Failed to update product' });
   }
 });
 
-// Delete product and invalidate Redis cache, send to RabbitMQ
+// Delete product and invalidate cache
 app.delete('/api/products/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await pool.query(
-      'DELETE FROM products WHERE id = $1 RETURNING *',
-      [id]
-    );
+    const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
 
-    if (result.rowCount === 0) {
+    // Invalidate cache
+    redisClient.del('products');
+
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Invalidate Redis cache
-    redisClient.del('products');
-
-    // Send the delete action to RabbitMQ queue
-    await sendToQueue('product_queue', JSON.stringify({ action: 'delete', productId: id }));
-
-    res.status(200).json({ message: 'Product deleted', product: result.rows[0] });
+    res.json({ message: 'Product deleted successfully' });
   } catch (err) {
     console.error('Failed to delete product:', err);
     res.status(500).json({ message: 'Failed to delete product' });
@@ -182,32 +163,31 @@ connectRabbitMQ().then(() => {
 
 // Endpoint to send a product to RabbitMQ queue
 app.post('/api/product_queue', async (req, res) => {
-  const { product } = req.body;
-  if (product) {
-    try {
-      await sendToQueue('product_queue', JSON.stringify(product));
-      res.status(200).json({ message: 'Message sent to queue' });
-    } catch (err) {
-      console.error('Failed to send message to queue:', err);
-      res.status(500).json({ message: 'Failed to send message' });
+    const { product } = req.body;
+    if (product) {
+      try {
+        await sendToQueue('product_queue', JSON.stringify(product));
+        res.status(200).json({ message: 'Message sent to queue' });
+      } catch (err) {
+        console.error('Failed to send message to queue:', err);
+        res.status(500).json({ message: 'Failed to send message' });
+      }
+    } else {
+      res.status(400).json({ message: 'Product data is required' });
     }
-  } else {
-    res.status(400).json({ message: 'Product data is required' });
-  }
-});
+  });
 
 // API endpoint to fetch messages from RabbitMQ queue
 app.get('/api/queue/product_queue', (req, res) => {
   try {
-    const messages = getMessagesFromQueue(); // Fetch messages from the queue
+    const messages = getMessagesFromQueue();
     res.status(200).json(messages);
   } catch (err) {
-    console.error('Failed to fetch messages from queue:', err);
-    res.status(500).json({ message: 'Failed to fetch messages from queue' });
+    console.error('Failed to fetch messages from product_queue:', err);
+    res.status(500).json({ message: 'Failed to fetch messages from product_queue' });
   }
 });
 
-// Start the server
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
